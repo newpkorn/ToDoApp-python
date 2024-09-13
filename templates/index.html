@@ -1,0 +1,84 @@
+<html>
+    <head>
+        <title>TODO APP</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    </head>
+    <body class="position-absolute top-0 start-0 w-100 h-100" style="z-index: -10; background: white; background-image: linear-gradient(to right, #8080800a 1px, transparent 1px), linear-gradient(to bottom, #8080800a 1px, transparent 1px); background-size: 14px 24px;">
+        <div class="container-fluid w-75">
+            <div class="row justify-content-center my-4">
+                <h1>TODO APP</h1>
+            </div>
+            <div class="row justify-content-center">
+                <form class="form-inline" method="POST" action="/card/new">
+                    <div class="form-group mx-sm-3 mb-2">
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="cardName"
+                            name="cardName"
+                            placeholder="New Card Name"
+                            required
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary mb-2">Add Card</button>
+                </form>
+            </div>
+            <div class="row justify-content-start align-content-center">
+                {% for card_id, card in cards.items() %}
+                    <div class="col-sm-4 mb-5 d-flex justify-content-center rounded ">
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between" >
+                                    <h5 class="card-title">{{ card['name'] }}</h5>
+                                    <form method="POST" action="/card/delete">
+                                        <input type="hidden" name="card_id" value="{{card_id}}">
+                                        <button type="submit" class="border-0 bg-transparent text-danger btn-sm mb-2"><H5><i class="bi bi-trash fw-bold"></i></H5></button>
+                                    </form>
+                                </div>
+                                    {% if card['items'] and card['items']|length > 0 %}
+                                        {% for item in card['items'] %}
+                                            {% if item %}
+                                                <div class="d-flex justify-content-between">
+                                                    <form id="form-item-{{item['id']}}" action="/item/check" method="POST" class="form-check">
+                                                        <input name="item_id" type="hidden" value="{{item['id']}}">
+                                                        <input
+                                                            id="status_{{item['id']}}"
+                                                            onchange="document.getElementById('form-item-{{item['id']}}').submit()"
+                                                            class="form-check-input"
+                                                            {{ 'checked' if item['completed'] else '' }}
+                                                            type="checkbox">
+                                                        <input type="hidden" value="{{ 0 if item['completed'] else 1 }}" name="status">
+                                                        <label class="form-check-label" for="status_{{item['id']}}">{{item['name']}}</label>
+                                                    </form>
+                                                    <form method="POST" action="/item/delete">
+                                                        <input type="hidden" name="item_id" value="{{item['id']}}">
+                                                        <button type="submit" class="border-0 bg-transparent text-danger btn-sm mb-2"><i class="bi bi-x"></i></button>
+                                                    </form>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                <div class="d-flex justify-content-between">
+                                    <form class="form-inline" method="POST" action="/item/new">
+                                        <div class="form-group mb-2">
+                                            <input type="hidden" name="card_id" value="{{card_id}}">
+                                            <input
+                                                    type="text"
+                                                    class="form-control form-control-sm"
+                                                    id="newItem"
+                                                    name="name" placeholder="New Item"
+                                                    required
+                                            >
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm mb-2">Add</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>
