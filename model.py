@@ -47,7 +47,7 @@ class Card(BaseModel):
                         "completed": item['completed']
                     }
                 )
-                print(ret)
+                # print(ret)
         return ret
 
 class Item(BaseModel):

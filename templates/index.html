@@ -12,66 +12,101 @@
             <div class="row justify-content-center">
                 <form class="form-inline" method="POST" action="/card/new">
                     <div class="form-group mx-sm-3 mb-2">
-                        <input
-                            type="text"
-                            class="form-control"
-                            id="cardName"
-                            name="cardName"
-                            placeholder="New Card Name"
-                            required
-                        >
+                        <input type="text" class="form-control" id="cardName" name="cardName" placeholder="New Card Name" required>
                     </div>
                     <button type="submit" class="btn btn-primary mb-2">Add Card</button>
                 </form>
             </div>
             <div class="row justify-content-start align-content-center">
-                {% for card_id, card in cards.items() %}
-                    <div class="col-sm-4 mb-5 d-flex justify-content-center rounded ">
-                        <div class="card" style="width: 18rem;">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between" >
-                                    <h5 class="card-title">{{ card['name'] }}</h5>
-                                    <form method="POST" action="/card/delete">
-                                        <input type="hidden" name="card_id" value="{{card_id}}">
-                                        <button type="submit" class="border-0 bg-transparent text-danger btn-sm mb-2"><H5><i class="bi bi-trash fw-bold"></i></H5></button>
+            {% for card_id, card in cards.items() %}
+                <div class="col-12 col-sm-6 col-md-4 mb-5 d-flex justify-content-center rounded">
+                    <div class="card w-100">
+                        <div class="card-body position-relative">
+                            <div class="d-flex justify-content-between">
+                                {% if button_clicked == card_id %}
+                                    <form method="POST" action="/card/update" class="d-flex w-100">
+                                        <input type="hidden" name="card_id" value="{{ card_id }}">
+                                        <input type="text" name="card_name" value="{{ card['name'] }}" class="form-control flex-grow-1 mr-2">
+                                        <button type="submit" class="btn btn-success">Save</button>
                                     </form>
-                                </div>
-                                    {% if card['items'] and card['items']|length > 0 %}
-                                        {% for item in card['items'] %}
-                                            {% if item %}
-                                                <div class="d-flex justify-content-between">
-                                                    <form id="form-item-{{item['id']}}" action="/item/check" method="POST" class="form-check">
-                                                        <input name="item_id" type="hidden" value="{{item['id']}}">
-                                                        <input
-                                                            id="status_{{item['id']}}"
-                                                            onchange="document.getElementById('form-item-{{item['id']}}').submit()"
-                                                            class="form-check-input"
-                                                            {{ 'checked' if item['completed'] else '' }}
-                                                            type="checkbox">
-                                                        <input type="hidden" value="{{ 0 if item['completed'] else 1 }}" name="status">
-                                                        <label class="form-check-label" for="status_{{item['id']}}">{{item['name']}}</label>
-                                                    </form>
-                                                    <form method="POST" action="/item/delete">
-                                                        <input type="hidden" name="item_id" value="{{item['id']}}">
-                                                        <button type="submit" class="border-0 bg-transparent text-danger btn-sm mb-2"><i class="bi bi-x"></i></button>
-                                                    </form>
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endif %}
-                                <div class="d-flex justify-content-between">
-                                    <form class="form-inline" method="POST" action="/item/new">
-                                        <div class="form-group mb-2">
-                                            <input type="hidden" name="card_id" value="{{card_id}}">
-                                            <input
-                                                    type="text"
-                                                    class="form-control form-control-sm"
-                                                    id="newItem"
-                                                    name="name" placeholder="New Item"
-                                                    required
+                                {% else %}
+                                    <h5 class="card-title">{{ card['name'] }}</h5>
+                                    <div class="d-flex">
+                                        <form method="POST" action="/" class="me-2">
+                                            <input type="hidden" name="card_id" value="{{ card_id }}">
+                                            <button type="submit" name="edit-card-name" class="border-0 bg-transparent text-primary btn-sm">
+                                                <h5><i class="bi bi-pencil-fill"></i></h5>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="/card/delete">
+                                            <input type="hidden" name="card_id" value="{{ card_id }}">
+                                            <button
+                                                type="submit"
+                                                class="border-0 bg-transparent text-danger btn-sm"
+                                                onclick="return confirm('Do you want to delete Card: {{ card['name'] }} ?')"
                                             >
-                                        </div>
-                                        <button type="submit" class="btn btn-primary btn-sm mb-2">Add</button>
+                                                <h5><i class="bi bi-trash fw-bold"></i></h5>
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                                {% if card['items'] and card['items']|length > 0 %}
+                                    {% for item in card['items'] %}
+                                        {% if item %}
+                                            <div class="d-flex justify-content-between">
+                                                <form id="form-item-{{ item['id'] }}" action="/item/check" method="POST" class="form-check">
+                                                    <input name="item_id" type="hidden" value="{{ item['id'] }}">
+                                                    <input
+                                                        id="status_{{ item['id'] }}"
+                                                        onchange="document.getElementById('form-item-{{ item['id'] }}').submit()"
+                                                        class="form-check-input"
+                                                        {{ 'checked' if item['completed'] else '' }}
+                                                        type="checkbox">
+                                                    <input type="hidden" value="{{ 0 if item['completed'] else 1 }}" name="status">
+                                                    <label class="form-check-label {% if button_clicked == item['id']|string %}d-none{% endif %}" for="status_{{item['id']}}">
+                                                        {{item['name']}}
+                                                    </label>
+                                                </form>
+
+                                                {% if button_clicked == item['id']|string %}
+                                                    <form method="POST" action="/item/update" class="d-flex w-100">
+                                                        <input type="hidden" name="item_id" value="{{ item['id'] }}">
+                                                        <input type="text" name="item_name" value="{{ item['name'] }}" class="form-control flex-grow-1 mr-2" required>
+                                                        <button type="submit" class="btn btn-success">Save</button>
+                                                    </form>
+
+                                                {% else %}
+                                                    <div class="d-flex">
+                                                        <form method="POST" action="/" class="me-2">
+                                                            <input type="hidden" name="item_id" value="{{ item['id'] }}">
+                                                            <button type="submit" name="edit-item-name" class="border-0 bg-transparent text-primary btn-sm">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </button>
+                                                        </form>
+                                                        <form method="POST" action="/item/delete">
+                                                            <input type="hidden" name="item_id" value="{{ item['id'] }}">
+                                                            <button
+                                                                    type="submit"
+                                                                    class="border-0 bg-transparent text-danger btn-sm mb-2"
+                                                                    onclick="return confirm('Do you want to delete Item: {{ item['name'] }} ?')"
+                                                            >
+                                                                <i class="bi bi-x-square"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                {% endif %}
+
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                                <div class="d-flex justify-content-between">
+                                    <form class="d-flex w-100" method="POST" action="/item/new">
+                                        <input type="hidden" name="card_id" value="{{card_id}}">
+                                        <input type="text" class="form-control form-control-sm flex-grow-1 mr-2" id="newItem" name="name" placeholder="New Item" required>
+                                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
                                     </form>
                                 </div>
                             </div>

@@ -1,14 +1,21 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 from model import db, Card, Item
 from uuid import uuid4
 from pprint import pprint
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET', 'POST'])
 def home_page():
-    # pprint(Card.get_all())
-    return render_template('index.html', cards=Card.get_all())
+    button_clicked = None
+    if request.method == 'POST':
+        if 'edit-card-name' in request.form:
+            button_clicked = request.form.get('card_id')
+        elif 'edit-item-name' in request.form:
+            button_clicked = request.form.get('item_id')
+            print("Button clicked:", button_clicked)  # Debug line
+
+    return render_template('index.html', cards=Card.get_all(), button_clicked=button_clicked)
 
 @app.route('/card/new', methods=['POST'])
 def add_card():
@@ -33,6 +40,29 @@ def check_item():
     Item.update({Item.completed: status}).where(Item.id == item_id).execute()
     return redirect('/')
 
+@app.route('/card/update', methods=['POST'])
+def update_card():
+    try:
+        card_id = request.form.get('card_id')
+        card_name = request.form.get('card_name')
+        Card.update({Card.name: card_name}).where(Card.id == card_id).execute()
+
+        print(jsonify(success=True))
+        return redirect('/')
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
+
+
+@app.route('/item/update', methods=['POST'])
+def update_item():
+    try:
+        item_id = request.form.get('item_id')
+        item_name = request.form.get('item_name')
+        Item.update({Item.name: item_name}).where(Item.id == item_id).execute()
+        return redirect('/')
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
+
 @app.route('/card/delete', methods=['POST'])
 def delete_card():
     card_id = request.form.get('card_id')
@@ -52,5 +82,5 @@ def delete_item():
 
 if __name__ == ("__main__"):
     db.connect()
-    db.create_tables([Card, Item])
+    db.create_tables([Card, Item], safe=True)
     app.run('0.0.0.0', port=5000)
